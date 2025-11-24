@@ -2887,7 +2887,7 @@ findpopen(char *cmd, char *mode, int *childpid)
          (void) fcntl(childside, F_DUPFD, read_or_write);
          (void) close(childside);        /* Save a file descriptor */
       }
-      (void) execl(KORNSHELL, "ksh", "-c", cmd, (char *)0);
+      (void) execl("/bin/sh", "sh", "-c", cmd, (char *)0);
      /* Need to process the error return */
 
       DBGFORK(("%s:  child exiting\n", pname));
