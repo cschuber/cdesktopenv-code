@@ -29,13 +29,11 @@
 
 #include "basic.h"
 
-int m_upper(int c);
-
 int m_upstrcmp(char *p, char *q)
   {
     do {
-      if (m_upper((int) *p) < m_upper((int) *q)) return(-1) ;
-      if (m_upper((int) *p) > m_upper((int) *q++)) return(1) ;
+      if (toupper((int) *p) < toupper((int) *q)) return(-1) ;
+      if (toupper((int) *p) > toupper((int) *q++)) return(1) ;
       } while (*p++) ;
     return(0) ;
     }

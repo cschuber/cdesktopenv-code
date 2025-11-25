@@ -132,8 +132,6 @@ void initialize(void);
 
 LOGICAL litproc(int delim);
 
-int main(int argc, char **argv);
-
 void makeand(LOGICAL *canbenull, TREE *root, int optional);
 
 LOGICAL makefsa(TREE *root, int optional);

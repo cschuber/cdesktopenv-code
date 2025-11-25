@@ -96,8 +96,6 @@ LOGICAL m_letter(M_WCHAR c);
 
 LOGICAL litproc(int delim);
 
-int main(int argc, char **argv);
-
 void *m_malloc(int size, char *msg);
 
 void m_openchk(FILE **ptr, char *name, char *mode);

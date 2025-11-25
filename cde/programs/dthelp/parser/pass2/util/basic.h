@@ -27,7 +27,7 @@
 
 /* hpux protects stdio.h from multiple includes thru stdlib.h . */
 #include <stdio.h>
-
+#include <ctype.h>
 #define TRUE 1
 #define FALSE 0
 typedef unsigned char LOGICAL;

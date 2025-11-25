@@ -31,6 +31,7 @@ This product and information is proprietary of Tandem Computers Incorporated.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "basic.h"
 #include "trie.h"
 
@@ -479,7 +480,7 @@ while ((c = getc(ddat)) != EOF)
 		}
 	    break;
 	    }
-	*p++ = m_upper(c);
+	*p++ = toupper(c);
 	}
     *p = M_EOS;
     /* Skip intervening white space */
@@ -516,7 +517,7 @@ while ((c = getc(ddat)) != EOF)
     m_free(mb_dname,"multi-byte string");
 
     for (i = 0 ; dname[i] ; i++)
-	dname[i] = m_lower(dname[i]);
+	dname[i] = tolower(dname[i]);
     mb_dname = MakeMByteString(dname);
 
     mb_dstring = MakeMByteString(dstring);
@@ -635,7 +636,7 @@ int ret = mbtowc(&wnl, "\n", 1);
 (void) ret;
 
 c = mb_getwc(cdat); /* use mb_getwc so we read multi-byte chars */
-if (cap && c != EOF) c = m_upper(c);
+if (cap && c != EOF) c = toupper(c);
 
 if (c == wnl) m_line++;
 

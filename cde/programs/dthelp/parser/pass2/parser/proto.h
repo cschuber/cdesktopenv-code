@@ -168,8 +168,6 @@ void m_longent(int context);
 LOGICAL m_lookent(M_WCHAR *name, unsigned char *type, M_WCHAR **content, 
   unsigned char *wheredef);
 
-void main(int argc, char **argv);
-
 void *m_malloc(int size, char *msg);
 
 void m_mberr1(const char *text, const char *arg);

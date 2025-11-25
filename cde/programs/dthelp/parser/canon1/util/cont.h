@@ -65,10 +65,6 @@ void incdelim(void);
 
 void loaddelim(void);
 
-int m_lower(int c);
-
-int main(int argc, char **argv);
-
 void *m_malloc(int size, char *msg);
 
 void nextcon(LOGICAL sparse);
@@ -84,8 +80,6 @@ int readchar(LOGICAL cap);
 void skiptoend(void);
 
 void unread(int c);
-
-int m_upper(int c);
 
 void warning(char *text);
 

@@ -12,8 +12,8 @@ fclndir_SOURCES = context.c
 
 libutil_a_SOURCES = allwhite.c inctest.c letter.c triedump.c		\
 	triepdmp.c trieplk.c trierset.c upcmp8.c upstrcmp.c wchar.c	\
-	conutil.c error.c exit.c itoa.c lower.c malloc.c openchk.c	\
-	trie.c triecnt.c upper.c whitesp.c basic.h common.h		\
+	conutil.c error.c exit.c itoa.c malloc.c openchk.c	\
+	trie.c triecnt.c whitesp.c basic.h common.h		\
 	dtddef.h entdef.h sparse.h trie.h chartype.h cont.h dtdext.h	\
 	entext.h sref.h version.h
 

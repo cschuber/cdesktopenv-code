@@ -71,8 +71,6 @@ LOGICAL m_letter(M_WCHAR c);
 
 void loadxref(void);
 
-int m_lower(int c);
-
 void options(LOGICAL filelenonly);
 
 void outchar(M_WCHAR textchar, FILE *outfile );
@@ -178,8 +176,6 @@ int vspacing(const M_WCHAR *keyword);
 int vtype(const M_WCHAR *keyword);
 
 void xrefexpand(M_WCHAR *id);
-
-int m_upper(int c);
 
 char *GetDefaultHeaderString(char          *elementName,
   unsigned char  desiredType,

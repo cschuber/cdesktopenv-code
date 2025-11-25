@@ -25,8 +25,6 @@
 /* Function prototypes for HP Tag/TeX translator */
 
 
-int m_lower(int c);
-
 void options(LOGICAL filelenonly);
 
 void setopt(char *string, LOGICAL filelenonly);
@@ -34,8 +32,6 @@ void setopt(char *string, LOGICAL filelenonly);
 LOGICAL setvalopt(int thisopt, char *string, LOGICAL filelenonly);
 
 char *strstr(const char *s1, const char *s2);
-
-int m_upper(int c);
 
 char *MakeMByteString(const M_WCHAR *from);
 

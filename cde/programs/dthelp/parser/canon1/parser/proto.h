@@ -172,8 +172,6 @@ void m_longent(int context);
 LOGICAL m_lookent(M_WCHAR *name, unsigned char *type, M_WCHAR **content, 
   unsigned char *wheredef);
 
-int main(int argc, char **argv);
-
 void *m_malloc(int size, char *msg);
 
 void m_missingtagc(int c, M_HOLDTYPE dchar, LOGICAL start);
