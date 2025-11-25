@@ -7,6 +7,64 @@ https://sourceforge.net/p/cdesktopenv/code/commit_browser
 
 
 #######################################################################
+### 2.5.3 (stable) 11/25/2025
+
+This is mainly a bugfix release addressing various issues.
+
+Shortlog:
+
+Chase (2):
+      dtfile: use sh instead of ksh for find command
+      dthelp/parser: use standard ctype case functions
+
+Dark Ayron (1):
+      dtwm: add support for more mouse buttons
+
+Jon Trulson (3):
+      dtcm: Chase FreeBSD src bb421be6c117 which moved ftime(3)
+      tradcpp: fix bool issue with newer compilers (GCC 15)
+      fix: t_optmgmt: Incorrect options format
+
+Myrrh Periwinkle (1):
+      libDtWidget: Do not mix wide and narrow operations on the same stream
+
+Nilton Perim Neto (1):
+      Made a workaround to not use the sh_access
+
+Patrick Georgi (6):
+      DtTerm/TermPrimUtil: Use 6 'X's in mktemp template
+      DtTerm/TermPrimUtil: Use mkstemp instead of mktemp
+      lib/DtTerm: Fix copy&paste error
+      lib/DtTerm: Remove dead assignments, initializations and increments
+      DtTerm/TermPrim: check pointer before traversing
+      Add systemd service file for dtlogin
+
+Paul Ward (1):
+      dtterm: Fix title and icon Sun esc seqs
+
+Trung Lê (2):
+      tt/ttauth: Update print_help()
+      tt/mini_isam: explicitly declare compfunc parameters
+
+b'Jon Trulson (1):
+      Merge /u/runlevel5/cde/ branch print-help-gcc15 into master
+
+hyousatsu (8):
+      ksh93: fix a compilation error on 32-bit system.
+      DtMmdb: replace Berkeley DB with LMDB.
+      dtdocbook: link to lmdb.
+      DtMmdb: replace ostring with std::string.
+      Fix some warnings.
+      DtMmdb: fix a crash occurs when creating bookmark.
+      dtcreate: make pop-ups work properly.
+      dtwm: manage windows properly to avoid potential segmentation faults.
+
+rhubarb-geek-nz (1):
+      init scripts from rhubarb-pi.sf.net
+
+
+
+#######################################################################
 ### 2.5.2 (stable) 11/18/2023
 
 This is mainly a bugfix release addressing various issues.
