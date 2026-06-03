@@ -27,6 +27,7 @@ AM_CPPFLAGS = -DPASS1 -I../parser -I../eltdef -I../../include/parser -I../../inc
 	      -I../../include/eltdef -I../../include/helptag \
 	      $(DT_INCDIR) \
 	      -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+	      -DCDE_DATA_TOP=\"$(CDE_DATA_TOP)\" \
 	      -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
 	      -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
 

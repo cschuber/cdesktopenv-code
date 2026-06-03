@@ -1,6 +1,6 @@
 MAINTAINERCLEANFILES = Makefile.in
 
-startinstdir = $(CDE_INSTALLATION_TOP)/infolib/etc
+startinstdir = $(CDE_DATA_TOP)/infolib/etc
 startinst_PROGRAMS = dtinfo_start
 
 BUILT_SOURCES = dtinfo_start.opnums

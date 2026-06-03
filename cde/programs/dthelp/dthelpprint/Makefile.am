@@ -5,7 +5,8 @@ bin_SCRIPTS =  dthelpprint.sh
 
 dthelpprint_CPPFLAGS = -I.. -I ../../../lib/DtHelp \
 	-DCDE_CONFIGURATION_TOP='"${prefix}"' \
-	-DCDE_INSTALLATION_TOP='"$(CDE_INSTALLATION_TOP)"'
+	-DCDE_INSTALLATION_TOP='"$(CDE_INSTALLATION_TOP)"' \
+	-DCDE_DATA_TOP='"$(CDE_DATA_TOP)"'
 
 dthelpprint_LDADD = $(DTCLIENTLIBS) $(XTOOLLIB)
 

@@ -15,7 +15,7 @@ BUILT_SOURCES = Xm.cat Mrm.cat Uil.cat DtHelp.cat DtMail.cat		\
 
 CLEANFILES = $(BUILT_SOURCES)
 
-msgcatdir = $(CDE_INSTALLATION_TOP)/lib/nls/msg/$(LANG)
+msgcatdir = $(CDE_DATA_TOP)/lib/nls/msg/$(LANG)
 dist_msgcat_DATA = $(BUILT_SOURCES)
 
 TOP = $(top_builddir)/programs

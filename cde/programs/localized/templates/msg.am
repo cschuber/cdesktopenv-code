@@ -4,7 +4,7 @@
 BUILT_SOURCES = $(shell ls *.msg |grep -v libAB |sed -e 's/.msg/.cat/g')
 CLEANFILES = $(BUILT_SOURCES)
 
-msgcatdir = $(CDE_INSTALLATION_TOP)/lib/nls/msg/$(LANG)
+msgcatdir = $(CDE_DATA_TOP)/lib/nls/msg/$(LANG)
 dist_msgcat_DATA = $(BUILT_SOURCES)
 
 SUFFIXES = .msg .cat

@@ -22,7 +22,7 @@ LOCALDEPFILES = \
 BUILT_SOURCES = types.xdr
 CLEANFILES = *.done types.xdr .tt_lock
 
-tttypesdir = $(CDE_INSTALLATION_TOP)/appconfig/tttypes
+tttypesdir = $(CDE_DATA_TOP)/appconfig/tttypes
 dist_tttypes_DATA = $(BUILT_SOURCES)
 
 types.xdr: $(LOCALDEPFILES)

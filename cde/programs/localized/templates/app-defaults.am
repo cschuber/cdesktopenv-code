@@ -8,7 +8,7 @@ BUILT_SOURCES = Dthelpview Dtimsstart Dtlogin Dthello Dtsession		\
 
 CLEANFILES = $(BUILT_SOURCES)
 
-appdefdir = $(CDE_INSTALLATION_TOP)/app-defaults/$(LANG)
+appdefdir = $(CDE_DATA_TOP)/app-defaults/$(LANG)
 dist_appdef_DATA = $(BUILT_SOURCES)
 
 TOP = $(top_builddir)/programs
