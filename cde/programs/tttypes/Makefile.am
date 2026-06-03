@@ -29,6 +29,11 @@ types.xdr: $(LOCALDEPFILES)
 
 TT_TYPE_COMP = $(top_builddir)/lib/tt/bin/tt_type_comp/tt_type_comp
 
+# Let the dtinfo ptypes pick up CDE_DATA_TOP / CDE_INSTALLATION_TOP from
+# cde_config.h via tt_type_comp's internal cpp pass, so their start
+# strings resolve against the configured --with-cde-* layout.
+TT_CPP_FLAGS = -I$(top_srcdir)/include
+
 .ptype.done:
 	$(RM) $@
-	TTPATH=. $(TT_TYPE_COMP) -sd user -m $< && touch $@ ; $(RM) .tt_lock
+	TTPATH=. $(TT_TYPE_COMP) $(TT_CPP_FLAGS) -sd user -m $< && touch $@ ; $(RM) .tt_lock

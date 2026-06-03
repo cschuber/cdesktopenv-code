@@ -1418,7 +1418,7 @@ void DtApp::UpdateQueues()
     {
       window->status_line->Name(MESSAGE(UpdatingActionsL));
       window->Refresh();
-      system("/usr/dt/bin/dtaction ReloadActions&");
+      system(CDE_INSTALLATION_TOP "/bin/dtaction ReloadActions&");
     }
    UpdateStatusLine();
    window->container->EndUpdate();

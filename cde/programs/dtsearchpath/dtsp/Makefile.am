@@ -2,7 +2,10 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = dtsearchpath
 
-dtsearchpath_CPPFLAGS = -I../libCliSrv $(DT_INCDIR)
+dtsearchpath_CPPFLAGS = -I../libCliSrv $(DT_INCDIR) \
+    -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+    -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+    -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
 
 if SOLARIS
 dtsearchpath_CPPFLAGS += -DIOSTREAMSWORKS

@@ -6,6 +6,10 @@ appdefaultsdir = $(CDE_INSTALLATION_TOP)/app-defaults/C
 
 ABINCLUDES = -I../include -I../include/ab_private -I../libABil
 
+AM_CPPFLAGS = -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+              -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+              -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
+
 bin_PROGRAMS = dtbuilder
 
 BUILT_SOURCES = dtbuilder.h dtbuilder.c about_box_ui.h appfw_ui.h \

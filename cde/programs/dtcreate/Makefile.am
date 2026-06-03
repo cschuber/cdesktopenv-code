@@ -2,6 +2,10 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = dtcreate
 
+AM_CPPFLAGS = -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+              -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+              -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
+
 dtcreate_LDADD = $(DTCLIENTLIBS) $(XTOOLLIB)
 
 dtcreate_SOURCES = main.c AddFiletype.c Confirmed.c			\

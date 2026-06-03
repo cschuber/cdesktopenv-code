@@ -25,7 +25,10 @@ CLEANFILES = $(BUILT_SOURCES)
 
 AM_CPPFLAGS = -DCANON1 -I../parser -I../eltdef -I../../include/parser -I../../include/util \
 	      -I../../include/eltdef -I../../include/helptag \
-	      $(DT_INCDIR)
+	      $(DT_INCDIR) \
+	      -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+	      -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+	      -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
 
 # needed by parser/
 noinst_LIBRARIES = libhelptag.a

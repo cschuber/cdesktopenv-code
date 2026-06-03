@@ -2,7 +2,10 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = dtappgather
 
-dtappgather_CXXFLAGS = -I../libCliSrv $(DT_INCDIR)
+dtappgather_CXXFLAGS = -I../libCliSrv $(DT_INCDIR) \
+    -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+    -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+    -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
 
 dtappgather_LDADD = ../libCliSrv/libCliSrv.a $(DTCLIENTLIBS) $(XTOOLLIB)
 

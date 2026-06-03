@@ -6,7 +6,10 @@ bin_PROGRAMS = dtimsstart
 
 dist_xsession_SCRIPTS = 0020.dtims
 
-dtimsstart_CFLAGS = -DNLS 
+dtimsstart_CFLAGS = -DNLS \
+    -DCDE_INSTALLATION_TOP=\"$(CDE_INSTALLATION_TOP)\" \
+    -DCDE_CONFIGURATION_TOP=\"$(CDE_CONFIGURATION_TOP)\" \
+    -DCDE_LOGFILES_TOP=\"$(CDE_LOGFILES_TOP)\"
 
 dtimsstart_LDADD = $(DTCLIENTLIBS) $(XTOOLLIB)
 
