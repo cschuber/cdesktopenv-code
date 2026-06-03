@@ -1052,6 +1052,17 @@ copyright
 doc/common/help/HELPEnt.sgm
 include/Dt/Dt.h
 lib/tt/bin/ttauth/ttauth.man
+
+contrib/desktopentry/cde.desktop
+contrib/rc/systemd/dtlogin.service
+contrib/rc/linux/dtlogin
+contrib/rc/freebsd/dtlogin
+contrib/rc/netbsd/dtlogin
+contrib/rc/openbsd/dtlogin
+contrib/rc/openbsd/cmsd
+contrib/xinetd/cmsd
+contrib/xinetd/ttdbserver
+contrib/desktop2dt/desktop2dt
 ])
 
 AC_OUTPUT
