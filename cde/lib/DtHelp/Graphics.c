@@ -1262,11 +1262,17 @@ XwdFileToPixmap (
 
     if (result != GR_ALLOC_ERR)
 
+#if XmVersion > 2004
+    _XmPutScaledImage(DefaultScreenOfDisplay(dpy), dpy, pixmap, depth, gc, out_image,
+		      src_x, src_y, dst_x, dst_y,
+		      in_image.width, in_image.height,
+		      width, height);
+#else
     _XmPutScaledImage(dpy, pixmap, gc, out_image,
 		      src_x, src_y, dst_x, dst_y,
 		      in_image.width, in_image.height,
 		      width, height);
-
+#endif
     /*
      * free the buffers
      */
@@ -1360,8 +1366,14 @@ static enum _DtGrLoadStatus processBitmap(
 
 	scaled_pixmap = XCreatePixmap (dpy, drawable, (*in_out_width),
 				       (*in_out_height), depth);
+
+#if XmVersion > 2004
+       _XmPutScaledImage(DefaultScreenOfDisplay(dpy), dpy, scaled_pixmap, depth, gc, &ximage,0, 0, 0, 0,
+			 width,height,(*in_out_width),(*in_out_height));
+#else
        _XmPutScaledImage(dpy, scaled_pixmap, gc, &ximage,0, 0, 0, 0,
 			 width,height,(*in_out_width),(*in_out_height));
+#endif
        XFree((char *)data);
        *ret_pixmap = scaled_pixmap;
     }
@@ -1747,10 +1759,17 @@ myXpmReadFileToPixmap(
             XSetBackground (display, gc, fg);
             XSetForeground (display, gc, bg);
 	  }
-        _XmPutScaledImage(display, *pixmap_return, gc, image, 
+#if XmVersion > 2004
+        _XmPutScaledImage(DefaultScreenOfDisplay(display), display, *pixmap_return, depth, gc, image,
 			  0, 0, 0, 0,
 			  image->width, image->height,
 			  scaledWidth, scaledHeight);
+#else
+        _XmPutScaledImage(display, *pixmap_return, gc, image,
+			  0, 0, 0, 0,
+			  image->width, image->height,
+			  scaledWidth, scaledHeight);
+#endif
 	if (switchFlag)
 	  {
 	    XSetBackground (display, gc, bg);
@@ -2148,9 +2167,15 @@ static enum _DtGrLoadStatus processJPEG(
 		** Copy the XImage into the pixmap and set the other
                 ** return parameters.
                 */
-                _XmPutScaledImage(dpy, *ret_pixmap, gc, out_image, 0, 0, 0, 0, 
+#if XmVersion > 2004
+                _XmPutScaledImage(DefaultScreenOfDisplay(dpy), dpy, *ret_pixmap, depth, gc, out_image, 0, 0, 0, 0,
 				  out_image->width, out_image->height, 
 		                  scaledWidth, scaledHeight); 
+#else
+                _XmPutScaledImage(dpy, *ret_pixmap, gc, out_image, 0, 0, 0, 0,
+				  out_image->width, out_image->height,
+		                  scaledWidth, scaledHeight);
+#endif
 
                 *in_out_width = scaledWidth;
                 *in_out_height = scaledHeight;              

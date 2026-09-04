@@ -873,11 +873,18 @@ int                         scaledX, scaledY;
     scaledHeight = ((nSrcLines + pPriv->linesDone) * ratio + 0.5) 
 	- scaledY;
 
-    _XmPutScaledImage (pXWC->i.display, pPriv->drawable, 
-                       pXWC->i.gc, pXImage, 
-		       0, 0, scaledX, scaledY,
-		       pXImage->width, nSrcLines,
-		       scaledWidth,scaledHeight);
+#if XmVersion > 2004
+    _XmPutScaledImage(DefaultScreenOfDisplay(pXWC->i.display), pXWC->i.display,
+                      pPriv->drawable, pXWC->visualInfo.depth, pXWC->i.gc,
+                      pXImage, 0, 0, pXImage->width, nSrcLines, scaledX,
+                      scaledY, scaledWidth, scaledHeight);
+#else
+    _XmPutScaledImage (pXWC->i.display, pPriv->drawable,
+                       pXWC->i.gc, pXImage,
+                       0, 0, scaledX, scaledY,
+                       pXImage->width, nSrcLines,
+                       scaledWidth,scaledHeight);
+#endif
 
     pPriv->linesDone += nSrcLines;
 
@@ -956,10 +963,18 @@ int scaledX, scaledY ;
     scaledX = pPriv->x * ratio  ;
     scaledY = (pPriv->y + pPriv->linesDone)* ratio  ;
 
-    _XmPutScaledImage (pXWC->i.display, pPriv->drawable, pXWC->i.gc, pXImage, 
-		       0, 0, scaledX, scaledY,
-		       pXImage->width, nSrcLines,
-	               scaledWidth,scaledHeight);
+#if XmVersion > 2004
+    _XmPutScaledImage(DefaultScreenOfDisplay(pXWC->i.display), pXWC->i.display,
+                      pPriv->drawable, pXWC->visualInfo.depth, pXWC->i.gc,
+                      pXImage, 0, 0, pXImage->width, nSrcLines, scaledX,
+                      scaledY, scaledWidth, scaledHeight);
+#else
+    _XmPutScaledImage (pXWC->i.display, pPriv->drawable,
+                       pXWC->i.gc, pXImage,
+                       0, 0, scaledX, scaledY,
+                       pXImage->width, nSrcLines,
+                       scaledWidth,scaledHeight);
+#endif
 
     pPriv->linesDone += nSrcLines;
 

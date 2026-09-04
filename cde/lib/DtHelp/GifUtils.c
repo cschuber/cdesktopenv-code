@@ -1193,10 +1193,15 @@ else
     fprintf(stderr, "could not create pixmap\n");
     return None;
   }
-
+#if XmVersion > 2004
+  _XmPutScaledImage (DefaultScreenOfDisplay(g->f_dpy),g->f_dpy,pm,g->f_dft_depth,g->f_gc,g->f_ximage,
+		     0,0,0,0,width,height,
+		     scaledWidth,scaledHeight);
+#else
   _XmPutScaledImage (g->f_dpy,pm,g->f_gc,g->f_ximage,
 		     0,0,0,0,width,height,
 		     scaledWidth,scaledHeight);
+#endif
 
   XDestroyImage(g->f_ximage);
   g->f_ximage = NULL;

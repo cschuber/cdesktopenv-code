@@ -168,7 +168,8 @@ static Widget   _Uxbuild_OpenFile(void)
                         XmNheight, 500,
                         RES_CONVERT( XmNdialogTitle, GETMESSAGE(12, 25, "Create Action - Open")),
                         RES_CONVERT( XmNdirectory, "" ),
-                        RES_CONVERT( XmNtextString, "" ),
+                        /* RES_CONVERT( XmNtextString, "" ), */
+                        XmNtextString, XmStringCreateLocalized("videor ergo sum"),
                         RES_CONVERT( XmNdirSpec, "" ),
                         XmNdialogType, XmDIALOG_FILE_SELECTION,
                         XmNtextColumns, 20,

@@ -68,6 +68,23 @@ extern Boolean _XmGeoSetupKid(
 /* Extracted from IconFileP.h */
 extern void XmeFlushIconFileCache(String	path);
 /* Extracted from ImageCachI.h */
+#if XmVersion > 2004
+extern void _XmPutScaledImage(
+    Screen      *screen,
+    Display     *display,
+    Drawable     d,
+    int          depth,
+    GC           gc,
+    XImage      *src,
+    int          sx,
+    int          sy,
+    int          sw,
+    int          sh,
+    int          dx,
+    int          dy,
+    int          dw,
+    int          dh);
+#else
 extern void _XmPutScaledImage (
     Display*		 display ,
     Drawable		 d ,
@@ -81,6 +98,7 @@ extern void _XmPutScaledImage (
     unsigned int	 src_height,
     unsigned int	 dest_width ,
     unsigned int	 dest_height);
+#endif
 /* Extracted from ManagerI.h */
 extern void _XmManagerHelp(
                         Widget wid,
