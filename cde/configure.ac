@@ -350,9 +350,11 @@ dnl ${ac_default_prefix} which always resolves to AC_PREFIX_DEFAULT
 dnl (/usr/dt) regardless of --prefix, so packagers passing --prefix=/usr
 dnl unexpectedly got /usr/dt baked into their binaries.
 CDE_INSTALLATION_TOP='${prefix}'
+CDE_DTKSH_DATA_DIR='${CDE_DATA_TOP}/dtksh'
 CDE_USER_TOP=.dt
 
 AC_SUBST(CDE_INSTALLATION_TOP)
+AC_SUBST(CDE_DTKSH_DATA_DIR)
 AC_SUBST(CDE_DATA_TOP)
 AC_SUBST(CDE_CONFIGURATION_TOP)
 AC_SUBST(CDE_LOGFILES_TOP)

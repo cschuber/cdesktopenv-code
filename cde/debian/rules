@@ -69,7 +69,6 @@ override_dh_auto_install:
 	for d in debian/tmp debian/cde-desktop; do \
 		if [ -d "$$d" ]; then \
 			chmod 0644 "$$d/usr/dt/config/sys.dtprofile" 2>/dev/null || true; \
-			chmod 0644 "$$d/usr/lib/$(DEB_HOST_MULTIARCH)/dtksh/DtFuncs.dtsh" 2>/dev/null || true; \
 		fi; \
 	done
 	for d in debian/tmp debian/cde-desktop; do \
