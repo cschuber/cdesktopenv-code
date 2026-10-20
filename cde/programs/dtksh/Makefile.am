@@ -4,9 +4,11 @@ CLEANFILES = init.c DtFuncs.dtsh libshell.a
 
 SUBDIRS = examples
 
-kshdir = ${libdir}/dtksh
+kshdir = $(CDE_DTKSH_DATA_DIR)
 
-dist_ksh_SCRIPTS = DtFuncs.dtsh
+# Dtksh shell functions are architecture-independent data.
+nodist_ksh_DATA = DtFuncs.dtsh
+EXTRA_DIST = DtFuncs.sh
 
 KSH93SRC = ./ksh93
 
@@ -14,7 +16,7 @@ KSH93LIBSHELL = $(KSH93SRC)/lib/libshell.a
 
 bin_PROGRAMS = dtksh
 
-BUILT_SOURCES = init.c
+BUILT_SOURCES = init.c DtFuncs.dtsh
 
 # Put all SHOPT definitions here.  It is vital that dtksh and ksh93
 # are built with the same options.  We pass this list to both the
@@ -75,5 +77,5 @@ check-local:
 clean-local:
 	ksh93/bin/package clean
 
-DtFuncs.dtsh:
-	$(CP) DtFuncs.sh DtFuncs.dtsh
+DtFuncs.dtsh: $(srcdir)/DtFuncs.sh
+	$(CP) $(srcdir)/DtFuncs.sh $@

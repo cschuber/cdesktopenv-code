@@ -1685,9 +1685,9 @@ then
         Exit $failure_flag
     fi
 else
-    if [[ -r CDE_INSTALLATION_TOP/lib/dtksh/DtFuncs.dtsh ]]
+    if [[ -r CDE_DTKSH_DATA_DIR/DtFuncs.dtsh ]]
     then
-        . CDE_INSTALLATION_TOP/lib/dtksh/DtFuncs.dtsh
+        . CDE_DTKSH_DATA_DIR/DtFuncs.dtsh
     else
         failure_flag=1
         echo Sorry--cannot find initialization file.
