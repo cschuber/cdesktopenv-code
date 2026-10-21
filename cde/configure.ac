@@ -548,7 +548,17 @@ dnl libraries
 AC_CHECK_LIB(m, cosf)
 AC_SEARCH_LIBS(dlopen, [dl dld], [], [])
 
-AC_CHECK_LIB(crypt, crypt)
+dnl dtaction includes crypt.h directly on Linux and Solaris.
+dnl Other platforms may declare crypt() through different system headers.
+AS_CASE([$host_os],
+    [linux*|solaris*|sunos*], [
+        AC_CHECK_HEADERS([crypt.h], [],
+            [AC_MSG_ERROR([crypt.h is required on this platform; install the libcrypt development headers])])
+    ])
+
+dnl crypt() may be supplied by libc or by a separate libcrypt.
+AC_SEARCH_LIBS([crypt], [crypt], [],
+    [AC_MSG_ERROR([crypt() was not found in libc or libcrypt; install the libcrypt development library])])
 dnl this should be configurable, for now it is required
 AC_CHECK_LIB(Xinerama, XineramaQueryScreens,
                 [SOURCE_CPP_DEFINES="${SOURCE_CPP_DEFINES} -DUSE_XINERAMA"],
