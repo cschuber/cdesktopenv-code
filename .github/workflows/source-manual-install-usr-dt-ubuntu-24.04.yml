@@ -172,6 +172,7 @@ jobs:
             g++ \
             git \
             ksh \
+            libcrypt-dev \
             libfreetype6-dev \
             libjpeg-dev \
             liblmdb-dev \
