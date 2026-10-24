@@ -1,0 +1,468 @@
+name: CDE package CI - Arch Linux rolling
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cde-package-archlinux-rolling-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build cdesktopenv-git on Arch rolling
+    runs-on: ubuntu-24.04
+    container:
+      image: archlinux:base-devel
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    env:
+      CDE_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      CDE_SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    steps:
+      - name: Set up Arch build environment
+        id: bootstrap
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          set +e
+          (
+            set -Eeuo pipefail
+            unset LC_ALL LANG
+            cat /etc/os-release
+            test "$(uname -m)" = x86_64
+            pacman -Syu --noconfirm --needed \
+              archlinux-keyring ca-certificates git python sudo file binutils actionlint
+            sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+            locale-gen
+            LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 locale
+            id cdebuild >/dev/null 2>&1 || useradd -m -s /bin/bash cdebuild
+            mkdir -p "$RUNNER_TEMP/cde-arch-ci"
+            install -d -o cdebuild -g cdebuild -m755 \
+              "$RUNNER_TEMP/cde-arch-ci/pkg" \
+              "$RUNNER_TEMP/cde-arch-ci/out" \
+              "$RUNNER_TEMP/cde-arch-ci/logs"
+          ) 2>&1 | tee "$RUNNER_TEMP/arch-bootstrap.log"
+          statuses=("${PIPESTATUS[@]}")
+          set -e
+          printf '%s\n' "${statuses[0]}" > "$RUNNER_TEMP/arch-bootstrap.command-status"
+          printf '%s\n' "${statuses[1]}" > "$RUNNER_TEMP/arch-bootstrap.logger-status"
+          test "${statuses[1]}" = 0
+          exit "${statuses[0]}"
+
+      - name: Check out CDE
+        id: checkout
+        if: ${{ steps.bootstrap.outcome == 'success' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch AUR recipe and prepare source
+        id: source_verify
+        if: ${{ steps.checkout.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          actionlint -shellcheck="" .github/workflows/package-archlinux-rolling.yml
+          for script in .github/packaging/archlinux/*.sh; do bash -n "$script"; done
+          bash .github/packaging/archlinux/ci-build.sh seed
+
+      - name: Run CI tests
+        id: analyzer_tests
+        if: ${{ steps.checkout.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          python -m unittest discover -s .github/scripts/tests -p 'test_analyze_build_log.py' -v
+          python -m unittest discover -s .github/packaging/archlinux/tests -v
+
+      - name: Build AUR dependencies
+        id: aur_dependencies
+        if: ${{ steps.source_verify.outcome == 'success' && steps.analyzer_tests.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash -n .github/packaging/archlinux/ci-aur-dependencies.sh
+          bash .github/packaging/archlinux/ci-build.sh aur-dependencies
+
+      - name: Prepare package sources
+        id: dependencies
+        if: ${{ steps.aur_dependencies.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-build.sh dependencies
+
+      - name: Record build environment
+        id: provenance
+        if: ${{ steps.dependencies.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-build.sh provenance
+
+      - name: Build package
+        id: package_build
+        if: ${{ steps.provenance.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-build.sh build
+
+      - name: Check build log
+        id: log_check
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          test -s "$RUNNER_TEMP/package-build.log"
+          test -f "$RUNNER_TEMP/cde-arch-ci/makepkg-preparation-exit-status"
+
+      - name: Analyze build log
+        id: package_analyzer
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          directory="$RUNNER_TEMP/ci-diagnostics/analyzer"
+          mkdir -p "$directory"
+          set +e
+          python .github/scripts/analyze-build-log.py \
+            --log "$RUNNER_TEMP/package-build.log" \
+            --label 'CDE makepkg build / Arch Linux rolling / Open Motif' \
+            --output-dir "$directory" \
+            --summary-file "$GITHUB_STEP_SUMMARY" > "$directory/console.log" 2>&1
+          status=$?
+          set -e
+          printf '%s\n' "$status" > "$directory/analyzer-exit-status.txt"
+          if test -f "$directory/summary.md"; then cat "$directory/summary.md"; fi
+          if test -f "$directory/first-failure.txt"; then
+            printf '\nFirst diagnostic excerpt:\n'
+            head -n 80 "$directory/first-failure.txt"
+          fi
+          if test "$status" != 0; then tail -n 60 "$directory/console.log"; fi
+          printf '\nFull output: build diagnostics artifact.\n'
+          exit "$status"
+
+      - name: Collect packages
+        id: package_collect
+        if: ${{ steps.package_build.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-build.sh collect
+
+      - name: Upload packages
+        id: package_upload
+        if: ${{ steps.package_collect.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cdesktopenv-git-archlinux-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/cde-arch-ci/out/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6
+
+      - name: Collect build diagnostics
+        id: diagnostics_prepare
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          CI_CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          CI_STAGE_OUTCOMES: |
+            Bootstrap=${{ steps.bootstrap.outcome }}
+            Checkout=${{ steps.checkout.outcome }}
+            Verify source=${{ steps.source_verify.outcome }}
+            CI tests=${{ steps.analyzer_tests.outcome }}
+            AUR dependencies=${{ steps.aur_dependencies.outcome }}
+            Prepare sources=${{ steps.dependencies.outcome }}
+            Build environment=${{ steps.provenance.outcome }}
+            Build package=${{ steps.package_build.outcome }}
+            Raw build log=${{ steps.log_check.outcome }}
+            Analyze build log=${{ steps.package_analyzer.outcome }}
+            Collect packages=${{ steps.package_collect.outcome }}
+            Package upload=${{ steps.package_upload.outcome }}
+        run: |
+          set -Eeuo pipefail
+          fallback="$RUNNER_TEMP/ci-diagnostics/fallback"
+          mkdir -p "$fallback"
+          printf '%s\n' "$CI_STAGE_OUTCOMES" > "$fallback/stage-outcomes-before-upload.txt"
+          printf 'Source repository: %s\nExpected SHA: %s\n' \
+            "$CDE_SOURCE_REPOSITORY" "$CDE_EXPECTED_SHA" > "$fallback/source-event.txt"
+          for file in "$RUNNER_TEMP"/arch-bootstrap.{log,command-status,logger-status}; do
+            if test -f "$file"; then cp "$file" "$fallback/"; fi
+          done
+          (
+            set +e
+            cat /etc/os-release
+            uname -sm
+            if command -v pacman >/dev/null 2>&1; then
+              pacman -Q || printf 'Installed package database could not be read.\n'
+            fi
+          ) > "$fallback/environment.txt" 2>&1
+          collector_status=0
+          if test "$CI_CHECKOUT_OUTCOME" = success && test -f ".github/packaging/archlinux/ci-build.sh"; then
+            bash ".github/packaging/archlinux/ci-build.sh" diagnostics || collector_status=$?
+          else
+            printf 'Detailed collector unavailable: checkout outcome %s.\n' \
+              "$CI_CHECKOUT_OUTCOME" > "$fallback/collector-unavailable.txt"
+          fi
+          printf '%s\n' "$collector_status" > "$fallback/collector-exit-status.txt"
+          exit "$collector_status"
+
+      - name: Upload build diagnostics
+        id: diagnostics_upload
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cde-archlinux-build-diagnostics-${{ github.run_id }}
+          path: ${{ runner.temp }}/ci-diagnostics/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+
+      - name: Check build results
+        if: ${{ always() }}
+        env:
+          CI_JOB_LABEL: Arch rolling build
+          CI_STAGE_OUTCOMES: |
+            Bootstrap=${{ steps.bootstrap.outcome }}
+            Checkout=${{ steps.checkout.outcome }}
+            Verify source=${{ steps.source_verify.outcome }}
+            CI tests=${{ steps.analyzer_tests.outcome }}
+            AUR dependencies=${{ steps.aur_dependencies.outcome }}
+            Prepare sources=${{ steps.dependencies.outcome }}
+            Build environment=${{ steps.provenance.outcome }}
+            Build package=${{ steps.package_build.outcome }}
+            Raw build log=${{ steps.log_check.outcome }}
+            Analyze build log=${{ steps.package_analyzer.outcome }}
+            Collect packages=${{ steps.package_collect.outcome }}
+            Package upload=${{ steps.package_upload.outcome }}
+            Collect diagnostics=${{ steps.diagnostics_prepare.outcome }}
+            Upload diagnostics=${{ steps.diagnostics_upload.outcome }}
+        run: |
+          set -Eeuo pipefail
+          failed=0
+          printf '## %s\n\n| Stage | Outcome | Required |\n|---|---|---|\n' \
+            "$CI_JOB_LABEL" >> "$GITHUB_STEP_SUMMARY"
+          while IFS='=' read -r name outcome; do
+            test -n "$name" || continue
+            outcome="${outcome:-unknown}"
+            required=yes
+            if test "$name" = 'Namcap (advisory)'; then required=no; fi
+            printf '%s: %s (required: %s)\n' "$name" "$outcome" "$required"
+            printf '| %s | %s | %s |\n' "$name" "$outcome" "$required" >> "$GITHUB_STEP_SUMMARY"
+            if test "$required" = yes && test "$outcome" != success; then
+              printf '::error::Mandatory stage %s: %s\n' "$name" "$outcome"
+              failed=1
+            fi
+          done <<< "$CI_STAGE_OUTCOMES"
+          exit "$failed"
+
+  test-install:
+    name: Install cdesktopenv-git on Arch rolling
+    needs: build
+    runs-on: ubuntu-24.04
+    container:
+      image: archlinux:base
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      CDE_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      CDE_SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    steps:
+      - name: Set up Arch install environment
+        id: bootstrap
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          set +e
+          (
+            set -Eeuo pipefail
+            cat /etc/os-release
+            test "$(uname -m)" = x86_64
+            pacman -Syu --noconfirm --needed \
+              archlinux-keyring ca-certificates git python file binutils diffutils
+            test -z "${LD_LIBRARY_PATH-}"
+          ) 2>&1 | tee "$RUNNER_TEMP/arch-bootstrap.log"
+          statuses=("${PIPESTATUS[@]}")
+          set -e
+          printf '%s\n' "${statuses[0]}" > "$RUNNER_TEMP/arch-bootstrap.command-status"
+          printf '%s\n' "${statuses[1]}" > "$RUNNER_TEMP/arch-bootstrap.logger-status"
+          test "${statuses[1]}" = 0
+          exit "${statuses[0]}"
+
+      - name: Check out test scripts
+        id: checkout
+        if: ${{ steps.bootstrap.outcome == 'success' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download packages
+        id: package_download
+        if: ${{ steps.checkout.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: cdesktopenv-git-archlinux-x86_64-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifact
+
+      - name: Verify package artifacts
+        id: package_inspect
+        if: ${{ steps.package_download.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-install.sh inspect
+
+      - name: Install package
+        id: package_install
+        if: ${{ steps.package_inspect.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-install.sh install
+
+      - name: Check install log
+        id: install_log_check
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          test -s "$RUNNER_TEMP/package-install.log"
+          test -f "$RUNNER_TEMP/cde-arch-install/install-exit-status"
+
+      - name: Check installed files and libraries
+        id: package_verify
+        if: ${{ steps.package_install.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-install.sh verify
+
+      - name: Report Motif version
+        id: motif_runtime
+        if: ${{ steps.package_verify.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          bash .github/packaging/archlinux/ci-install.sh motif
+
+      - name: Run namcap (advisory)
+        id: namcap
+        if: ${{ steps.package_inspect.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -Eeuo pipefail
+          pacman -S --noconfirm --needed namcap
+          bash .github/packaging/archlinux/ci-install.sh namcap
+
+      - name: Collect install diagnostics
+        id: diagnostics_prepare
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          CI_CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          CI_STAGE_OUTCOMES: |
+            Bootstrap=${{ steps.bootstrap.outcome }}
+            Checkout=${{ steps.checkout.outcome }}
+            Package download=${{ steps.package_download.outcome }}
+            Verify artifacts=${{ steps.package_inspect.outcome }}
+            Install package=${{ steps.package_install.outcome }}
+            Raw installation log=${{ steps.install_log_check.outcome }}
+            Check installed files=${{ steps.package_verify.outcome }}
+            Motif=${{ steps.motif_runtime.outcome }}
+            Namcap (advisory)=${{ steps.namcap.outcome }}
+        run: |
+          set -Eeuo pipefail
+          fallback="$RUNNER_TEMP/ci-diagnostics/fallback"
+          mkdir -p "$fallback"
+          printf '%s\n' "$CI_STAGE_OUTCOMES" > "$fallback/stage-outcomes-before-upload.txt"
+          printf 'Source repository: %s\nExpected SHA: %s\n' \
+            "$CDE_SOURCE_REPOSITORY" "$CDE_EXPECTED_SHA" > "$fallback/source-event.txt"
+          for file in "$RUNNER_TEMP"/arch-bootstrap.{log,command-status,logger-status}; do
+            if test -f "$file"; then cp "$file" "$fallback/"; fi
+          done
+          (
+            set +e
+            cat /etc/os-release
+            uname -sm
+            if command -v pacman >/dev/null 2>&1; then
+              pacman -Q || printf 'Installed package database could not be read.\n'
+            fi
+          ) > "$fallback/environment.txt" 2>&1
+          collector_status=0
+          if test "$CI_CHECKOUT_OUTCOME" = success && test -f ".github/packaging/archlinux/ci-install.sh"; then
+            bash ".github/packaging/archlinux/ci-install.sh" diagnostics || collector_status=$?
+          else
+            printf 'Detailed collector unavailable: checkout outcome %s.\n' \
+              "$CI_CHECKOUT_OUTCOME" > "$fallback/collector-unavailable.txt"
+          fi
+          printf '%s\n' "$collector_status" > "$fallback/collector-exit-status.txt"
+          exit "$collector_status"
+
+      - name: Upload install diagnostics
+        id: diagnostics_upload
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cde-archlinux-install-diagnostics-${{ github.run_id }}
+          path: ${{ runner.temp }}/ci-diagnostics/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+
+      - name: Check install results
+        if: ${{ always() }}
+        env:
+          CI_JOB_LABEL: Arch rolling install
+          CI_STAGE_OUTCOMES: |
+            Bootstrap=${{ steps.bootstrap.outcome }}
+            Checkout=${{ steps.checkout.outcome }}
+            Package download=${{ steps.package_download.outcome }}
+            Verify artifacts=${{ steps.package_inspect.outcome }}
+            Install package=${{ steps.package_install.outcome }}
+            Raw installation log=${{ steps.install_log_check.outcome }}
+            Check installed files=${{ steps.package_verify.outcome }}
+            Motif=${{ steps.motif_runtime.outcome }}
+            Namcap (advisory)=${{ steps.namcap.outcome }}
+            Collect diagnostics=${{ steps.diagnostics_prepare.outcome }}
+            Upload diagnostics=${{ steps.diagnostics_upload.outcome }}
+        run: |
+          set -Eeuo pipefail
+          failed=0
+          printf '## %s\n\n| Stage | Outcome | Required |\n|---|---|---|\n' \
+            "$CI_JOB_LABEL" >> "$GITHUB_STEP_SUMMARY"
+          while IFS='=' read -r name outcome; do
+            test -n "$name" || continue
+            outcome="${outcome:-unknown}"
+            required=yes
+            if test "$name" = 'Namcap (advisory)'; then required=no; fi
+            printf '%s: %s (required: %s)\n' "$name" "$outcome" "$required"
+            printf '| %s | %s | %s |\n' "$name" "$outcome" "$required" >> "$GITHUB_STEP_SUMMARY"
+            if test "$required" = yes && test "$outcome" != success; then
+              printf '::error::Mandatory stage %s: %s\n' "$name" "$outcome"
+              failed=1
+            fi
+          done <<< "$CI_STAGE_OUTCOMES"
+          exit "$failed"
